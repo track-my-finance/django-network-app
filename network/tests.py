@@ -1,4 +1,4 @@
-from django.test import TestCase
+from django.test import Client, TestCase
 from .models import User, Post, Like
 import unittest
 from django.core.exceptions import ValidationError
@@ -57,6 +57,16 @@ class NetworkTest(TestCase):
         u2.followers.add(u1)
 
         self.assertEqual(u1.following.count(), 1)
+
+    def test_postsview(self):
+        u1 = User.objects.get(username="u1")
+        p1 = Post.objects.get(user=u1)
+
+        c = Client()
+        response = c.get("/posts")
+
+        self.assertEqual(response.status_code, 200)
+
 
 if __name__ == "__main__":
     unittest.main()
