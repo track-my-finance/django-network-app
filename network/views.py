@@ -67,3 +67,21 @@ def posts(request):
 
     return JsonResponse([post.serialize() for post in posts], safe=False)
 
+def user_posts(request, username):
+    try:
+        user = User.objects.get(username=username)
+        posts = user.objects.all()
+        return JsonResponse([post.serialize() for post in posts], safe=False)
+    except:
+        return JsonResponse({"error": "User not valid"}, status=404)
+    
+
+def profile(request, username):
+    try:
+        user = User.objects.get(username=username)
+        return render(request, "network/profile.html", {
+            "user": user
+        })
+    except:
+        return HttpResponse("Page not Found", status=404)
+

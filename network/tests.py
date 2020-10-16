@@ -67,6 +67,21 @@ class NetworkTest(TestCase):
 
         self.assertEqual(response.status_code, 200)
 
+    def test_valid_userpage(self):
+        u1 = User.objects.get(username="u1")
+
+        c = Client()
+        response = c.get(f"/profile/{u1.username}")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["user"], u1)
+
+    def test_invalid_userpage(self):
+        c = Client()
+        response = c.get(f"/profile/randomuser")
+
+        self.assertEqual(response.status_code, 404)
+
 
 if __name__ == "__main__":
     unittest.main()
