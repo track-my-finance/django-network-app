@@ -2,6 +2,7 @@ from django.test import Client, TestCase
 from .models import User, Post, Like
 import unittest
 from django.core.exceptions import ValidationError
+from django.http import JsonResponse
 
 # Create your tests here.
 
@@ -81,6 +82,26 @@ class NetworkTest(TestCase):
         response = c.get(f"/profile/randomuser")
 
         self.assertEqual(response.status_code, 404)
+
+    def test_valid_userposts(self):
+        u1 = User.objects.get(username="u1")
+        posts = u1.posts.all()
+
+        c = Client()
+        response = c.get(f"/posts/{u1.username}")
+        expected = JsonResponse([post.serialize() for post in posts], safe=False)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.content, expected.content)
+
+    def test_nouserposts(self):
+        u1 = User.objects.get(username="u1")
+        posts = u1.posts.all()
+
+        c = Client()
+        response = c.get(f"/posts/{u1.username}")
+
+        self.assertEqual(response.status_code, 200)
 
 
 if __name__ == "__main__":
