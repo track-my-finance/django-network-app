@@ -1,5 +1,5 @@
 from django.contrib.auth import authenticate, login, logout
-from django.db import IntegrityError
+from django.db import IntegrityError, transaction
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
@@ -85,3 +85,23 @@ def profile(request, username):
     except:
         return JsonResponse({"error": "User not valid"}, status=404)
 
+def like(request, post_id):
+    if request.method == "POST":
+        try:
+            
+                user = request.user
+                post = Post.objects.get(id=int(post_id))
+                Like.objects.create(user=user, post=post)
+                return JsonResponse({"message": "Post liked"})
+        except:
+            return JsonResponse({"error": "Post already liked"}, status=400)
+
+def dislike(request, post_id):
+    if request.method == "POST":
+        try:
+            user = request.user
+            post = Post.objects.get(id=int(post_id))
+            Like.objects.get(user=user, post=post).delete()
+            return JsonResponse({"message": "Post disliked"})
+        except:
+            return JsonResponse({"error": "Post already disliked"}, status=400)

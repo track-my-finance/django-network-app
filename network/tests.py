@@ -11,9 +11,15 @@ class NetworkTest(TestCase):
     def setUp(self):
         
         #Create Users
-        u1 = User.objects.create(username="u1", password="1234")
-        u2 = User.objects.create(username="u2", password="1234")
-        u3 = User.objects.create(username="u3", password="1234")
+        u1 = User.objects.create(username="u1")
+        u1.set_password("1234")
+        u1.save()
+        u2 = User.objects.create(username="u2")
+        u2.set_password("1234")
+        u2.save()
+        u3 = User.objects.create(username="u3")
+        u3.set_password("1234")
+        u3.save()
 
         #Create Posts
         p1 = Post.objects.create(user=u1, content="Hello World")
@@ -83,7 +89,7 @@ class NetworkTest(TestCase):
 
         self.assertEqual(response.status_code, 404)
 
-    def test_valid_userposts(self):
+    def test_userposts(self):
         u1 = User.objects.get(username="u1")
         posts = u1.posts.all()
 
@@ -103,6 +109,49 @@ class NetworkTest(TestCase):
 
         self.assertEqual(response.status_code, 200)
 
+    def test_likeview(self):
+        u1 = User.objects.get(username="u1")
+        p2 = Post.objects.get(id=2)
+
+        c = Client()
+        c.login(username="u1", password="1234")
+        response = c.post(f"/posts/{p2.id}/like")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(p2.likes.count(), 1)
+
+    def test_invalid_likeview(self):
+        u1 = User.objects.get(username="u1")
+        p2 = Post.objects.get(id=2)
+        Like.objects.create(user=u1, post=p2)
+
+        c = Client()
+        c.login(username="u1", password="1234")
+        response = c.post(f"/posts/{p2.id}/like")
+
+        self.assertEqual(response.status_code, 400)
+
+    def test_dislikeview(self):
+        u1 = User.objects.get(username="u1")
+        p2 = Post.objects.get(id=2)
+        Like.objects.create(user=u1, post=p2)
+
+        c = Client()
+        c.login(username="u1", password="1234")
+        response = c.post(f"/posts/{p2.id}/dislike")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(p2.likes.count(), 0)
+
+    def test_invalid_dislikeview(self):
+        u1 = User.objects.get(username="u1")
+        p2 = Post.objects.get(id=2)
+
+        c = Client()
+        c.login(username="u1", password="1234")
+        response = c.post(f"/posts/{p2.id}/dislike")
+
+        self.assertEqual(response.status_code, 400)
 
 if __name__ == "__main__":
     unittest.main()
