@@ -1,11 +1,14 @@
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError, transaction
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
+from django.core.exceptions import ValidationError
 
 from .models import User, Post, Like
 
+#Views
 
 def index(request):
     return render(request, "network/index.html")
@@ -85,17 +88,18 @@ def profile(request, username):
     except:
         return JsonResponse({"error": "User not valid"}, status=404)
 
+@login_required
 def like(request, post_id):
     if request.method == "POST":
         try:
-            
-                user = request.user
-                post = Post.objects.get(id=int(post_id))
-                Like.objects.create(user=user, post=post)
-                return JsonResponse({"message": "Post liked"})
+            user = request.user
+            post = Post.objects.get(id=int(post_id))
+            Like.objects.create(user=user, post=post)
+            return JsonResponse({"message": "Post liked"})
         except:
             return JsonResponse({"error": "Post already liked"}, status=400)
 
+@login_required
 def dislike(request, post_id):
     if request.method == "POST":
         try:
@@ -105,3 +109,33 @@ def dislike(request, post_id):
             return JsonResponse({"message": "Post disliked"})
         except:
             return JsonResponse({"error": "Post already disliked"}, status=400)
+
+@login_required
+def follow(request, username):
+    if request.method == "POST":
+        try:
+            user = User.objects.get(username=username)
+            if user in request.user.following.all():
+                raise ValidationError("User already followed")
+            request.user.following.add(user)
+            return JsonResponse({"message": f"User {user.username} followed"})
+        except IntegrityError as e:
+            return JsonResponse({"error": str(e)}, status=400)
+        except ValidationError as e:
+            return JsonResponse({"error": str(e)}, status=400)
+        except:
+            return JsonResponse({"error": "An error ocurred"}, status=500)
+
+@login_required
+def unfollow(request, username):
+    if request.method == "POST":
+        try:
+            user = User.objects.get(username=username)
+            if user not in request.user.following.all():
+                raise ValidationError("User already unfollowed")
+            request.user.following.remove(user)
+            return JsonResponse({"message": f"User {user.username} followed"})
+        except ValidationError as e:
+            return JsonResponse({"error": str(e)}, status=400)
+        except:
+            return JsonResponse({"error": "An error ocurred"}, status=500)

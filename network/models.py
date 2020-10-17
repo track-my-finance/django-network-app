@@ -1,9 +1,14 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.core.exceptions import ValidationError
+from django.db.models.signals import m2m_changed
+from django.dispatch import receiver
+
 
 
 class User(AbstractUser):
     following = models.ManyToManyField("User", blank=True, related_name="followers")
+    
 
 class Post(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="posts")
@@ -26,3 +31,11 @@ class Like(models.Model):
     class Meta:
         unique_together = ["post", "user"]
 
+@receiver(m2m_changed, sender=User.following.through)
+def validate_following(sender, **kwargs):
+    instance = kwargs.pop('instance', None)
+    pk_set = kwargs.pop('pk_set', None)
+    action = kwargs.pop('action', None)
+    if action == "pre_add":
+        if instance.pk in pk_set:
+            raise ValidationError("Can't follow yourself")

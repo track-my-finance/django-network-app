@@ -1,8 +1,10 @@
 from django.test import Client, TestCase
 from .models import User, Post, Like
-import unittest
+import unittest, json
 from django.core.exceptions import ValidationError
 from django.http import JsonResponse
+from django.db import transaction
+from django.db.utils import IntegrityError
 
 # Create your tests here.
 
@@ -35,7 +37,7 @@ class NetworkTest(TestCase):
         self.assertEqual(u2.posts.count(), 1)
         self.assertEqual(u3.posts.count(), 1)
 
-    def test_like(self):
+    def test_valid_like(self):
         u1 = User.objects.get(username="u1")
         u2 = User.objects.get(username="u2")
         p1 = Post.objects.get(user=u1)
@@ -43,13 +45,14 @@ class NetworkTest(TestCase):
 
         self.assertEqual(p1.likes.count(), 1)
 
-    def test_valid_likes(self):
+    def test_invalid_likes(self):
         u1 = User.objects.get(username="u1")
         u2 = User.objects.get(username="u2")
         p1 = Post.objects.get(user=u1)
         like = Like.objects.create(post=p1, user=u2)
 
-        self.assertRaises(ValidationError)
+        with self.assertRaises(IntegrityError):
+            Like.objects.create(post=p1, user=u2)
 
     def test_followers(self):
         u1 = User.objects.get(username="u1")
@@ -64,6 +67,12 @@ class NetworkTest(TestCase):
         u2.followers.add(u1)
 
         self.assertEqual(u1.following.count(), 1)
+
+    def test_invalid_follow(self):
+        u1 = User.objects.get(username="u1")
+        with self.assertRaises(ValidationError):
+            u1.followers.add(u1)
+
 
     def test_postsview(self):
         u1 = User.objects.get(username="u1")
@@ -152,6 +161,56 @@ class NetworkTest(TestCase):
         response = c.post(f"/posts/{p2.id}/dislike")
 
         self.assertEqual(response.status_code, 400)
+
+    def test_followview(self):
+        u1 = User.objects.get(username="u1")
+        u2 = User.objects.get(username="u2")
+
+        c = Client()
+        c.login(username="u1", password="1234")
+        response = c.post(f"/profile/{u2.username}/follow")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(u1.following.count(), 1)
+        self.assertEqual(u2.followers.count(), 1)
+
+    def test_unfollowview(self):
+        u1 = User.objects.get(username="u1")
+        u2 = User.objects.get(username="u2")
+        u1.following.add(u2)
+
+        c = Client()
+        c.login(username="u1", password="1234")
+        response = c.post(f"/profile/{u2.username}/unfollow")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(u1.following.count(), 0)
+        self.assertEqual(u2.followers.count(), 0)
+
+    def test_invalid_followview(self):
+        u1 = User.objects.get(username="u1")
+        u2 = User.objects.get(username="u2")
+        u1.following.add(u2)
+
+        c = Client()
+        c.login(username="u1", password="1234")
+        response = c.post(f"/profile/{u2.username}/follow")
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(u1.following.count(), 1)
+        self.assertEqual(u2.followers.count(), 1)
+
+    def test_invalid_unfollowview(self):
+        u1 = User.objects.get(username="u1")
+        u2 = User.objects.get(username="u2")
+
+        c = Client()
+        c.login(username="u1", password="1234")
+        response = c.post(f"/profile/{u2.username}/unfollow")
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(u1.following.count(), 0)
+        self.assertEqual(u2.followers.count(), 0)
 
 if __name__ == "__main__":
     unittest.main()
