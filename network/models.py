@@ -7,6 +7,7 @@ from django.dispatch import receiver
 
 
 class User(AbstractUser):
+    image = models.ImageField(upload_to="users/", default="site/default.jpg")
     following = models.ManyToManyField("User", blank=True, related_name="followers")
     
 

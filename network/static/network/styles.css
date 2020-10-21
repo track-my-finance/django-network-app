@@ -1,0 +1,50 @@
+#profile-icon{
+    margin-left:auto;
+    width: 40px;
+    height: 40px;
+}
+
+#profile-icon:hover{
+    color: aqua;
+    cursor: pointer;
+    border: solid aqua 1px;
+}
+
+@keyframes appear {
+    0% {
+        height: 0px;
+        width: 0px;
+        border: solid 0px gray;
+        line-height: 0px;
+    }
+    100% {
+        height: 200px;
+        width: 150px;
+        border: solid 1px gray;
+        line-height: 100%;
+    }
+}
+
+@keyframes growDown {
+    0% {
+      transform: scaleY(0)
+    }
+    80% {
+      transform: scaleY(1.1)
+    }
+    100% {
+      transform: scaleY(1)
+    }
+  }
+
+#profile-panel{
+    animation: growDown 300ms ease-in-out both;
+    position: absolute;
+    background-color: white;
+    border: solid 1px gray;
+    right: 30px;
+    top: 50px;
+    border-radius: 20px 0px 20px 20px;
+    transform-origin: top right;
+    padding: 15px 5px 15px 5px;
+}

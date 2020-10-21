@@ -4,43 +4,53 @@
 <html lang="en">
     <head>
         <title>{% block title %}Social Network{% endblock %}</title>
-        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://bootswatch.com/4/cerulean/bootstrap.css" media="screen">
         <link href="{% static 'network/styles.css' %}" rel="stylesheet">
+        <script src="{% static 'network/main.js' %}"></script>
     </head>
     <body>
 
-        <nav class="navbar navbar-expand-lg navbar-light bg-light">
-            <a class="navbar-brand" href="#">Network</a>
+        <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+            <a class="navbar-brand" href="{% url 'index' %}">Network</a>
           
             <div>
               <ul class="navbar-nav mr-auto">
                 {% if user.is_authenticated %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="#"><strong>{{ user.username }}</strong></a>
-                    </li>
+                    
                 {% endif %}
                 <li class="nav-item">
                   <a class="nav-link" href="{% url 'index' %}">All Posts</a>
                 </li>
-                {% if user.is_authenticated %}
+              </ul>
+            </div>
+            {% if user.is_authenticated %}
+                <ul class="navbar-nav ml-auto">    
                     <li class="nav-item">
-                        <a class="nav-link" href="#">Following</a>
+                        <a class="nav-link"><strong>{{ user.username }}</strong></a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'logout' %}">Log Out</a>
-                    </li>
-                {% else %}
+                    <div id="profile-icon" class="rounded-circle" style="content: url('{{ user.image.url }}');">
+                        Test
+                    </div>
+                </ul>
+            {% else %}
+                <ul class="navbar-nav ml-auto">
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'login' %}">Log In</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'register' %}">Register</a>
                     </li>
-                {% endif %}
-              </ul>
-            </div>
-          </nav>
-        
+                </ul>
+            {% endif %}
+        </nav>
+        {% if user.is_authenticated %}
+        <div id="profile-panel">
+            <a class="dropdown-item" href="{% url 'profile' user.username %}">View Profile</a>
+            <a class="dropdown-item" href="#">Following</a>
+            <hr/>   
+            <a class="dropdown-item" href="{% url 'logout' %}">Logout</a>
+        </div>
+        {% endif %}
         <div class="body">
             {% block body %}
             {% endblock %}
