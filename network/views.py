@@ -1,10 +1,12 @@
+import json
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-from django.db import IntegrityError, transaction
+from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
 from django.core.exceptions import ValidationError
+from django.views.decorators.csrf import csrf_exempt
 
 from .models import User, Post, Like
 
@@ -65,10 +67,17 @@ def register(request):
     else:
         return render(request, "network/register.html")
 
+@csrf_exempt
 def posts(request):
-    posts = Post.objects.all()
-
-    return JsonResponse([post.serialize() for post in posts], safe=False)
+    if request.method == "GET":
+        posts = Post.objects.all().order_by("-timestamp")
+        return JsonResponse([post.serialize() for post in posts], safe=False)
+    if request.method == "POST":
+        data = json.loads(request.body)
+        content = data.get("content", "")
+        post = Post(content=content, user=request.user)
+        post.save()
+        return JsonResponse(post.serialize(), safe=False, status=201)
 
 def user_posts(request, username):
     try:

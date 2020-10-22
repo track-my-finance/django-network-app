@@ -212,5 +212,15 @@ class NetworkTest(TestCase):
         self.assertEqual(u1.following.count(), 0)
         self.assertEqual(u2.followers.count(), 0)
 
+    def test_postview(self):
+        u1 = User.objects.get(username="u1")
+        
+        c = Client()
+        c.login(username="u1", password="1234")
+        response = c.post("/posts", json.dumps({"content": "Hello World"}), content_type="application/json")
+
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(u1.posts.count(), 2)
+
 if __name__ == "__main__":
     unittest.main()
