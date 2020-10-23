@@ -8,8 +8,12 @@
         <link rel="stylesheet" href="https://bootswatch.com/4/cerulean/bootstrap.css" media="screen">
         <link rel="stylesheet" href="{% static 'network/styles.css' %}">
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pretty-checkbox@3.0/dist/pretty-checkbox.min.css">
-        <script src="{% static 'network/main.js' %}"></script>
         <script src="https://kit.fontawesome.com/8fcd03b763.js" crossorigin="anonymous"></script>
+        <script>
+            var user = "{{request.user.username}}";
+            localStorage.setItem('user', user);
+            </script>
+        <script src="{% static 'network/main.js' %}"></script>
     </head>
     <body>
 

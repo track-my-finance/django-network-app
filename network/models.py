@@ -23,7 +23,8 @@ class Post(models.Model):
             "image": self.user.image.url,
             "timestamp": self.timestamp.strftime(f"%b %d %Y, %I:%M %p"),
             "content": self.content,
-            "likes": self.likes.count()
+            "likes": self.likes.count(),
+            "like_users": [like.user.username for like in self.likes.all()]
         }
 
 

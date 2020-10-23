@@ -1,4 +1,26 @@
-
+const article = (post) => {
+    return `
+        <article class="border p-2">
+        <span class="float-right"><em>${post.timestamp}</em></span>
+        <span><img src="${post.image}" style="width: 40px; height: 40px;" class="rounded-circle"><a href="/profile/${post.username}"><strong class="text-primary ml-3">${post.username}</strong></a></span>
+        <p style="white-space: pre-line;">
+            ${post.content}
+        </p>
+        <span class="d-flex justify-content-end">
+            <strong id="like-count-${post.id}" class="mt-auto mb-auto mr-2">${post.likes}</strong>
+            <div style="color:red; font-size:30px; margin-right: 5px;" class="pretty p-icon p-toggle p-plain">
+                <input id="like-button-${post.id}" onclick=like(${post.id}) type="checkbox" />
+                <div class="state p-off">
+                    <i class="far fa-heart"></i>
+                </div>
+                <div class="state p-on p-info-o">
+                    <i class="fas fa-heart"></i>
+                </div>
+            </div>
+        <span>
+    </article>
+    `
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     
@@ -45,34 +67,44 @@ function load_posts(){
         }
         else{
             posts.forEach(post => {
-                const article = `
-                    <article class="border p-2">
-                        <span class="float-right"><em>${post.timestamp}</em></span>
-                        <span><img src="${post.image}" style="width: 40px; height: 40px;" class="rounded-circle"><a href="/profile/${post.username}"><strong class="text-primary ml-3">${post.username}</strong></a></span>
-                        <p style="white-space: pre-line;">
-                        ${post.content}
-                        </p>
-                        <span class="d-flex justify-content-end" translate="no">
-                            <strong>${post.likes}</strong>
-                            <div class="pretty p-icon p-toggle p-plain ml-2">
-                                <input type="checkbox" />
-                                <div style="font-size: 30px; color: red;" class="state p-off">
-                                    <i class="far fa-heart"></i>
-                                </div>
-                                <div style="font-size: 30px; color: red;" class="state p-on">
-                                    <i class="fas fa-heart"></i>
-                                </div>
-                            </div>
-                        <span>
-                    </article>
-                `
-                document.querySelector('#posts-window').innerHTML += (article);
-            })
+                document.querySelector('#posts-window').innerHTML += article(post);
+            });
+
+            format_liked_posts(posts);
         }
     })
 }
 
-let temp_post;
+function format_liked_posts(posts){
+    posts.forEach(post => {
+        const user = localStorage.getItem('user');
+        console.log(post.like_users);
+        const length = post.like_users.filter(element => element === user).length;
+        const like_button = document.querySelector(`#like-button-${post.id}`);
+        if(length > 0){
+            like_button.checked = true;
+        }
+    })
+}
+
+function like(id){
+    const like_button = document.querySelector(`#like-button-${id}`);
+    let like_count = document.querySelector(`#like-count-${id}`);
+    if (like_button.checked){
+        fetch(`/posts/${id}/like`, {method: 'POST'})
+        .then(response => response.json())
+        .then(result => {
+            like_count.innerHTML = result.likes;
+        });
+    }
+    else{
+        fetch(`/posts/${id}/dislike`, {method: 'POST'})
+        .then(response => response.json())
+        .then(result => {
+            like_count.innerHTML = result.likes;
+        });
+    }
+}
 
 function submit_post(){
     fetch('/posts', {
@@ -84,23 +116,7 @@ function submit_post(){
     .then(response => response.json())
     .then(post => {
         document.querySelector('#post-content').value = '';
-        const link = document.createElement('a');
-        const article = `
-            <article class="border p-2 posts">
-                <span class="float-right"><em>${post.timestamp}</em></span>
-                <span><img src="${post.image}" style="width: 40px; height: 40px;" class="rounded-circle"><a href="/profile/${post.username}"><strong class="text-primary ml-3">${post.username}</strong></a></span>
-                <p style="white-space: pre-line;">
-                    ${post.content}
-                </p>
-                <span class="d-flex justify-content-end">
-                    ${post.likes}
-                    <button type="button" class="btn btn-primary" data-toggle="button" aria-pressed="false" autocomplete="off">
-                        Like
-                    </button>
-                <span>
-            </article>
-        `
-        document.querySelector('#posts-window').innerHTML = article + document.querySelector('#posts-window').innerHTML;
+        document.querySelector('#posts-window').innerHTML = article(post) + document.querySelector('#posts-window').innerHTML;
     });
     return false;
 }

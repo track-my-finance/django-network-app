@@ -97,6 +97,7 @@ def profile(request, username):
     except:
         return JsonResponse({"error": "User not valid"}, status=404)
 
+@csrf_exempt
 @login_required
 def like(request, post_id):
     if request.method == "POST":
@@ -104,10 +105,11 @@ def like(request, post_id):
             user = request.user
             post = Post.objects.get(id=int(post_id))
             Like.objects.create(user=user, post=post)
-            return JsonResponse({"message": "Post liked"})
+            return JsonResponse({"message": "Post liked", "likes": post.likes.count()})
         except:
             return JsonResponse({"error": "Post already liked"}, status=400)
 
+@csrf_exempt
 @login_required
 def dislike(request, post_id):
     if request.method == "POST":
@@ -115,7 +117,7 @@ def dislike(request, post_id):
             user = request.user
             post = Post.objects.get(id=int(post_id))
             Like.objects.get(user=user, post=post).delete()
-            return JsonResponse({"message": "Post disliked"})
+            return JsonResponse({"message": "Post disliked", "likes": post.likes.count()})
         except:
             return JsonResponse({"error": "Post already disliked"}, status=400)
 
