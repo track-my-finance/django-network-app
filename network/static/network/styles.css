@@ -59,7 +59,7 @@
 
 #profile-panel{
     animation: growDown 300ms ease-in-out both;
-    position: absolute;
+    position: fixed;
     background-color: white;
     border: solid 1px gray;
     right: 30px;

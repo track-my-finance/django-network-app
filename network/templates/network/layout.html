@@ -12,8 +12,10 @@
         <script>
             var user = "{{request.user.username}}";
             localStorage.setItem('user', user);
-            </script>
-        <script src="{% static 'network/main.js' %}"></script>
+        </script>
+        <script src="{% static 'network/nav.js' %}"></script>
+        {% block scripts %}
+        {% endblock %}
     </head>
     <body>
 

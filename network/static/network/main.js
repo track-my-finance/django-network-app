@@ -1,6 +1,6 @@
-const article = (post) => {
+const article = (post, animation = "") => {
     return `
-        <article class="border p-2">
+        <article class="border p-2 ${animation}">
         <span class="float-right"><em>${post.timestamp}</em></span>
         <span><img src="${post.image}" style="width: 40px; height: 40px;" class="rounded-circle"><a href="/profile/${post.username}"><strong class="text-primary ml-3">${post.username}</strong></a></span>
         <p style="white-space: pre-line;">
@@ -23,42 +23,22 @@ const article = (post) => {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    
-    const profile_icon = document.querySelector('#profile-icon');
-    const profile_options = document.querySelector('#profile-panel');
-    profile_options.style.animationPlayState = 'paused';
-
-    //Trigger Menu
-    profile_icon.addEventListener('click', () => {
-        profile_options.style.animationPlayState = 'running';
-    });
-
-    //Restart Animation
-    document.addEventListener('click', (event) => {
-        if(event.target.id !== 'profile-panel' && event.target.tagName !== 'A' && event.target.id !== 'profile-icon'){
-            reset_animation();
+    if(localStorage.getItem('user') !== ""){
+        document.querySelector('#post-submit').style.display = "block";
+        document.querySelector('#post-submit').onsubmit = () => {
+            console.log(submit_post());
+            return false;
         }
-    });
-    
-    document.querySelector('#post-submit').onsubmit = () => {
-        console.log(submit_post());
-        return false;
+    } else {
+        document.querySelector('#post-submit').style.display = "none";
     }
-
+    
     load_posts();
 });
 
-function reset_animation(){
-    const profile_options = document.querySelector('#profile-panel');
-    profile_options.style.animation = 'none';
-    profile_options.offsetHeight;
-    profile_options.style.animation = null; 
-    profile_options.style.animationPlayState = 'paused';
-}
-
-function load_posts(){
+function load_posts(user_route = ""){
     document.querySelector('#posts-window').innerHTML = '';
-    fetch('/posts')
+    fetch(`/posts${user_route}`)
     .then(response => response.json())
     .then(posts => {
         
@@ -69,8 +49,12 @@ function load_posts(){
             posts.forEach(post => {
                 document.querySelector('#posts-window').innerHTML += article(post);
             });
-
-            format_liked_posts(posts);
+            if (localStorage.getItem('user') !== ''){
+                format_liked_posts(posts);
+            }
+            else{
+                format_disabledlike_posts(posts)
+            }
         }
     })
 }
@@ -78,12 +62,18 @@ function load_posts(){
 function format_liked_posts(posts){
     posts.forEach(post => {
         const user = localStorage.getItem('user');
-        console.log(post.like_users);
         const length = post.like_users.filter(element => element === user).length;
         const like_button = document.querySelector(`#like-button-${post.id}`);
         if(length > 0){
             like_button.checked = true;
         }
+    })
+}
+
+function format_disabledlike_posts(posts){
+    posts.forEach(post => {
+        const like_button = document.querySelector(`#like-button-${post.id}`);
+        like_button.disabled = true;
     })
 }
 
@@ -116,7 +106,7 @@ function submit_post(){
     .then(response => response.json())
     .then(post => {
         document.querySelector('#post-content').value = '';
-        document.querySelector('#posts-window').innerHTML = article(post) + document.querySelector('#posts-window').innerHTML;
+        document.querySelector('#posts-window').innerHTML = article(post, "posts") + document.querySelector('#posts-window').innerHTML;
     });
     return false;
 }
