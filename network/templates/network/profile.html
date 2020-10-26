@@ -1,7 +1,41 @@
 {% extends "network/layout.html" %}
+{% load static %}
+
+{% block scripts %}
+    <script src="{% static 'network/main.js' %}"></script>
+{% endblock %}
 
 {% block body %}
-    <div class="container">
-        
+    <div class="container mt-3">
+        <div class="row">
+            <div class="col-sm-3">
+                <img src="{{profile.image.url}}" style="width: 100px; height: 100px;" class="rounded-circle">
+            </div>
+            <div class="col-sm-3">
+                <h5>Posts</h5>
+                {{ profile.posts.count }}
+            </div>
+            <div class="col-sm-3">
+                <h5>Followers</h5>
+                {{ profile.followers.count }}
+            </div>
+            <div class="col-sm-3">
+                <h5>Following</h5>
+                {{ profile.following.count }}
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-6">
+                <h4>{{ profile.username }}</h4>
+            </div>
+            <div class="col-sm-6">
+                <button class="btn btn-primary float-right">Follow</button>
+            </div>
+        </div>
+        <hr/>
+        <div class="row justify-content-center">
+            <div id="posts-window" class="col-sm-6"> 
+            </div>
+        </div>
     </div>
 {% endblock %}

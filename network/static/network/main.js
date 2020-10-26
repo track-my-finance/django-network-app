@@ -23,17 +23,23 @@ const article = (post, animation = "") => {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    if(localStorage.getItem('user') !== ""){
+    if(localStorage.getItem('user') !== "" && window.location.pathname === ""){
         document.querySelector('#post-submit').style.display = "block";
         document.querySelector('#post-submit').onsubmit = () => {
             console.log(submit_post());
             return false;
         }
-    } else {
+    } else if (window.location.pathname === "") {
         document.querySelector('#post-submit').style.display = "none";
     }
+
+    if (window.location.pathname.split("/")[1] === 'profile'){
+        load_posts("/" + window.location.pathname.split("/")[2]);
+    }
+    else{
+        load_posts();
+    }
     
-    load_posts();
 });
 
 function load_posts(user_route = ""){

@@ -82,7 +82,7 @@ def posts(request):
 def user_posts(request, username):
     try:
         user = User.objects.get(username=username)
-        posts = user.posts.all()
+        posts = user.posts.all().order_by("-timestamp")
         return JsonResponse([post.serialize() for post in posts], safe=False)
     except:
         return JsonResponse({"error": "No posts to show"}, status=404)
@@ -92,7 +92,7 @@ def profile(request, username):
     try:
         user = User.objects.get(username=username)
         return render(request, "network/profile.html", {
-            "user": user
+            "profile": user
         })
     except:
         return JsonResponse({"error": "User not valid"}, status=404)
