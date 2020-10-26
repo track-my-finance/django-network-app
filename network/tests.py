@@ -90,7 +90,7 @@ class NetworkTest(TestCase):
         response = c.get(f"/profile/{u1.username}")
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.context["user"], u1)
+        self.assertEqual(response.context["profile"], u1)
 
     def test_invalid_userpage(self):
         c = Client()
