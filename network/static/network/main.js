@@ -23,23 +23,35 @@ const article = (post, animation = "") => {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    if(localStorage.getItem('user') !== "" && window.location.pathname === ""){
+    if(localStorage.getItem('user') !== "" && window.location.pathname === "/"){
         document.querySelector('#post-submit').style.display = "block";
         document.querySelector('#post-submit').onsubmit = () => {
             console.log(submit_post());
             return false;
         }
-    } else if (window.location.pathname === "") {
+    } else if (window.location.pathname === "/") {
         document.querySelector('#post-submit').style.display = "none";
     }
 
     if (window.location.pathname.split("/")[1] === 'profile'){
+        const follow_button = document.querySelector('#follow-button');
+        follow_button.addEventListener('click', () => {
+            if (follow_button.innerHTML === 'Follow'){
+                follow(window.location.pathname.split("/")[2]);
+                follow_button.className = 'btn btn-secondary float-right';
+                follow_button.innerHTML = 'Unfollow';
+            } else if (follow_button.innerHTML === 'Unfollow'){
+                unfollow(window.location.pathname.split("/")[2]);
+                follow_button.className = 'btn btn-primary float-right';
+                follow_button.innerHTML = 'Follow';
+            }
+        })
         load_posts("/" + window.location.pathname.split("/")[2]);
     }
     else{
         load_posts();
     }
-    
+
 });
 
 function load_posts(user_route = ""){
@@ -100,6 +112,14 @@ function like(id){
             like_count.innerHTML = result.likes;
         });
     }
+}
+
+function follow(username){
+    fetch(`/profile/${username}/follow`, {method: 'POST'});
+}
+
+function unfollow(username){
+    fetch(`/profile/${username}/unfollow`, {method: 'POST'});
 }
 
 function submit_post(){

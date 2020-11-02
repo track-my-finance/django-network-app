@@ -90,9 +90,14 @@ def user_posts(request, username):
 
 def profile(request, username):
     try:
+        is_followed = False
         user = User.objects.get(username=username)
+        if (request.user):
+            if request.user in user.followers.all():
+                is_followed = True
         return render(request, "network/profile.html", {
-            "profile": user
+            "profile": user,
+            "is_followed": is_followed
         })
     except:
         return JsonResponse({"error": "User not valid"}, status=404)
@@ -122,6 +127,7 @@ def dislike(request, post_id):
             return JsonResponse({"error": "Post already disliked"}, status=400)
 
 @login_required
+@csrf_exempt
 def follow(request, username):
     if request.method == "POST":
         try:
@@ -138,6 +144,7 @@ def follow(request, username):
             return JsonResponse({"error": "An error ocurred"}, status=500)
 
 @login_required
+@csrf_exempt
 def unfollow(request, username):
     if request.method == "POST":
         try:
