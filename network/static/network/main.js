@@ -25,8 +25,22 @@ const article = (post, animation = "") => {
 document.addEventListener('DOMContentLoaded', () => {
     try{
         const newest_button = document.querySelector('#newest-btn');
-        const following_button = document.querySelector('#followinf-btn');
-    }
+        const following_button = document.querySelector('#following-btn');
+        newest_button.addEventListener('click', () => {
+            newest_button.classList.add('active');
+            following_button.classList.remove('active');
+            document.querySelector('#title').innerHTML = 'Newest';
+            document.querySelector('#post-submit').style.display = 'block';
+            load_posts();
+        });
+        following_button.addEventListener('click', () => {
+            following_button.classList.add('active');
+            newest_button.classList.remove('active');
+            document.querySelector('#title').innerHTML = 'Following';
+            document.querySelector('#post-submit').style.display = 'none';
+            load_following_posts();
+        })
+    }catch{}
 
     if(localStorage.getItem('user') !== "" && window.location.pathname === "/"){
         document.querySelector('#post-submit').style.display = "block";
@@ -61,6 +75,29 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
 });
+
+function load_following_posts(){
+    document.querySelector('#posts-window').innerHTML = '';
+    fetch(`/posts/following`)
+    .then(response => response.json())
+    .then(posts => {
+        
+        if (posts.length === 0){
+            document.querySelector('#posts-window').innerHTML = 'Nothing to show';
+        }
+        else{
+            posts.forEach(post => {
+                document.querySelector('#posts-window').innerHTML += article(post);
+            });
+            if (localStorage.getItem('user') !== ''){
+                format_liked_posts(posts);
+            }
+            else{
+                format_disabledlike_posts(posts)
+            }
+        }
+    })
+}
 
 function load_posts(user_route = ""){
     document.querySelector('#posts-window').innerHTML = '';

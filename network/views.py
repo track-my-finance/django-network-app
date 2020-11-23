@@ -87,6 +87,19 @@ def user_posts(request, username):
     except:
         return JsonResponse({"error": "No posts to show"}, status=404)
     
+def following_posts(request):
+    try:
+        user = request.user;
+        following = user.following.all()
+        posts = []
+        for user in following:
+            for post in user.posts.all():
+                posts.append(post)
+        posts.sort(key=lambda x: x.timestamp, reverse=True)
+        return JsonResponse([post.serialize() for post in posts], safe=False)
+    except:
+        return JsonResponse({"error": "No posts to show"}, status=404)
+
 
 def profile(request, username):
     try:
