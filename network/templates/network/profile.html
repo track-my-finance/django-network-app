@@ -29,11 +29,13 @@
                 <h4>{{ profile.username }}</h4>
             </div>
             <div class="col-sm-6">
-                {% if is_followed %}
+            {% if not profile.username == user.username %}
+                {% if is_followed%}
                     <button id="follow-button" class="btn btn-secondary float-right">Unfollow</button>
                 {% else %}
                     <button id="follow-button" class="btn btn-primary float-right">Follow</button>
                 {% endif %}
+            {% endif %}
             </div>
         </div>
         <hr/>

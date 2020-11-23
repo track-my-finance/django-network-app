@@ -23,6 +23,11 @@ const article = (post, animation = "") => {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    try{
+        const newest_button = document.querySelector('#newest-btn');
+        const following_button = document.querySelector('#followinf-btn');
+    }
+
     if(localStorage.getItem('user') !== "" && window.location.pathname === "/"){
         document.querySelector('#post-submit').style.display = "block";
         document.querySelector('#post-submit').onsubmit = () => {
@@ -34,18 +39,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (window.location.pathname.split("/")[1] === 'profile'){
-        const follow_button = document.querySelector('#follow-button');
-        follow_button.addEventListener('click', () => {
-            if (follow_button.innerHTML === 'Follow'){
-                follow(window.location.pathname.split("/")[2]);
-                follow_button.className = 'btn btn-secondary float-right';
-                follow_button.innerHTML = 'Unfollow';
-            } else if (follow_button.innerHTML === 'Unfollow'){
-                unfollow(window.location.pathname.split("/")[2]);
-                follow_button.className = 'btn btn-primary float-right';
-                follow_button.innerHTML = 'Follow';
-            }
-        })
+        try{
+            const follow_button = document.querySelector('#follow-button');
+            follow_button.addEventListener('click', () => {
+                if (follow_button.innerHTML === 'Follow'){
+                    follow(window.location.pathname.split("/")[2]);
+                    follow_button.className = 'btn btn-secondary float-right';
+                    follow_button.innerHTML = 'Unfollow';
+                } else if (follow_button.innerHTML === 'Unfollow'){
+                    unfollow(window.location.pathname.split("/")[2]);
+                    follow_button.className = 'btn btn-primary float-right';
+                    follow_button.innerHTML = 'Follow';
+                }
+            })
+        }
+        catch{}
         load_posts("/" + window.location.pathname.split("/")[2]);
     }
     else{
