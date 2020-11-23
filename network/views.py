@@ -6,6 +6,7 @@ from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
 from django.core.exceptions import ValidationError
+from django.core.paginator import Paginator
 from django.views.decorators.csrf import csrf_exempt
 
 from .models import User, Post, Like
@@ -89,13 +90,13 @@ def user_posts(request, username):
     
 def following_posts(request):
     try:
-        user = request.user;
+        user = request.user
         following = user.following.all()
         posts = []
         for user in following:
             for post in user.posts.all():
                 posts.append(post)
-        posts.sort(key=lambda x: x.timestamp, reverse=True)
+        posts.sort(key=lambda x: x.timestamp, reverse=True)  
         return JsonResponse([post.serialize() for post in posts], safe=False)
     except:
         return JsonResponse({"error": "No posts to show"}, status=404)

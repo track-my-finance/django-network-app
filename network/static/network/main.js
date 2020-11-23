@@ -1,4 +1,11 @@
 const article = (post, animation = "") => {
+    let isChecked = "";
+    const user = localStorage.getItem('user');
+    const length = post.like_users.filter(element => element === user).length;
+    if(length > 0){
+        isChecked = "checked";
+    }
+
     return `
         <article class="border p-2 ${animation}">
         <span class="float-right"><em>${post.timestamp}</em></span>
@@ -9,7 +16,7 @@ const article = (post, animation = "") => {
         <span class="d-flex justify-content-end">
             <strong id="like-count-${post.id}" class="mt-auto mb-auto mr-2">${post.likes}</strong>
             <div style="color:red; font-size:30px; margin-right: 5px;" class="pretty p-icon p-toggle p-plain">
-                <input id="like-button-${post.id}" onclick=like(${post.id}) type="checkbox" />
+                <input id="like-button-${post.id}" onclick=like(${post.id}) type="checkbox" ${isChecked}/>
                 <div class="state p-off">
                     <i class="far fa-heart"></i>
                 </div>
@@ -38,7 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
             newest_button.classList.remove('active');
             document.querySelector('#title').innerHTML = 'Following';
             document.querySelector('#post-submit').style.display = 'none';
-            load_following_posts();
+            load_posts("/following");
         })
     }catch{}
 
@@ -76,27 +83,58 @@ document.addEventListener('DOMContentLoaded', () => {
 
 });
 
-function load_following_posts(){
-    document.querySelector('#posts-window').innerHTML = '';
-    fetch(`/posts/following`)
-    .then(response => response.json())
-    .then(posts => {
-        
-        if (posts.length === 0){
-            document.querySelector('#posts-window').innerHTML = 'Nothing to show';
-        }
-        else{
-            posts.forEach(post => {
-                document.querySelector('#posts-window').innerHTML += article(post);
-            });
-            if (localStorage.getItem('user') !== ''){
-                format_liked_posts(posts);
-            }
-            else{
-                format_disabledlike_posts(posts)
-            }
-        }
-    })
+let list = new Array();
+let pageList = new Array();
+let currentPage = 1;
+let numberPerPage = 10;
+let numberOfPages = 0;
+
+function getNumberOfPages() {
+    return Math.ceil(list.length / numberPerPage);
+}
+
+function nextPage() {
+    currentPage += 1;
+    loadList();
+}
+
+function previousPage() {
+    currentPage -= 1;
+    loadList();
+}
+
+function firstPage() {
+    currentPage = 1;
+    loadList();
+}
+
+function lastPage() {
+    currentPage = numberOfPages;
+    loadList();
+}
+
+function loadList() {
+    var begin = ((currentPage - 1) * numberPerPage);
+    var end = begin + numberPerPage;
+
+    pageList = list.slice(begin, end);
+    drawList();
+    check();
+}
+
+function drawList() {
+    document.getElementById("posts-window").innerHTML = "";
+    for (r = 0; r < pageList.length; r++) {
+        document.getElementById("posts-window").innerHTML += pageList[r];
+    }
+    document.getElementById("page-number").innerHTML = currentPage;
+}
+
+function check() {
+    document.getElementById("next").disabled = currentPage == numberOfPages ? true : false;
+    document.getElementById("previous").disabled = currentPage == 1 ? true : false;
+    document.getElementById("first").disabled = currentPage == 1 ? true : false;
+    document.getElementById("last").disabled = currentPage == numberOfPages ? true : false;
 }
 
 function load_posts(user_route = ""){
@@ -104,20 +142,17 @@ function load_posts(user_route = ""){
     fetch(`/posts${user_route}`)
     .then(response => response.json())
     .then(posts => {
-        
+        currentPage = 1;
         if (posts.length === 0){
             document.querySelector('#posts-window').innerHTML = 'Nothing to show';
         }
         else{
+            list = [];
             posts.forEach(post => {
-                document.querySelector('#posts-window').innerHTML += article(post);
+                list.push(article(post))
             });
-            if (localStorage.getItem('user') !== ''){
-                format_liked_posts(posts);
-            }
-            else{
-                format_disabledlike_posts(posts)
-            }
+            numberOfPages = getNumberOfPages();
+            loadList();
         }
     })
 }
@@ -168,6 +203,7 @@ function unfollow(username){
 }
 
 function submit_post(){
+    load_posts();
     fetch('/posts', {
         method: 'POST',
         body: JSON.stringify({
