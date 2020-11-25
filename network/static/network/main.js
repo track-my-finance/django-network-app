@@ -1,19 +1,27 @@
 const article = (post, animation = "") => {
     let isChecked = "";
+    let isEditable = "";
     const user = localStorage.getItem('user');
     const length = post.like_users.filter(element => element === user).length;
     if(length > 0){
         isChecked = "checked";
     }
 
+    if (post.username === user){
+        isEditable = `
+            <button id="edit-${post.id}" class="btn btn-outline-primary mr-3" onclick="convert_to_textbox('${post.id}')">Edit</button>
+        `
+    }
+
     return `
         <article class="border p-2 ${animation}">
         <span class="float-right"><em>${post.timestamp}</em></span>
         <span><img src="${post.image}" style="width: 40px; height: 40px;" class="rounded-circle"><a href="/profile/${post.username}"><strong class="text-primary ml-3">${post.username}</strong></a></span>
-        <p style="white-space: pre-line;">
+        <p id="content-${post.id}" style="white-space: pre-line;">
             ${post.content}
         </p>
         <span class="d-flex justify-content-end">
+            ${isEditable}
             <strong id="like-count-${post.id}" class="mt-auto mb-auto mr-2">${post.likes}</strong>
             <div style="color:red; font-size:30px; margin-right: 5px;" class="pretty p-icon p-toggle p-plain">
                 <input id="like-button-${post.id}" onclick=like(${post.id}) type="checkbox" ${isChecked}/>
@@ -203,7 +211,6 @@ function unfollow(username){
 }
 
 function submit_post(){
-    load_posts();
     fetch('/posts', {
         method: 'POST',
         body: JSON.stringify({
@@ -214,6 +221,35 @@ function submit_post(){
     .then(post => {
         document.querySelector('#post-content').value = '';
         document.querySelector('#posts-window').innerHTML = article(post, "posts") + document.querySelector('#posts-window').innerHTML;
+    });
+    return false;
+}
+
+function convert_to_textbox(post_id){
+    content = document.getElementById(`content-${post_id}`).innerHTML.trim();
+    document.getElementById(`edit-${post_id}`).parentElement.parentElement.innerHTML = `
+        <form id="edit-submit-${post_id}">
+            <textarea id="post-content-${post_id}" style="height:130px;" class="form-control">${content}</textarea>
+            <input type="submit" class="btn btn-primary" value="Save">
+        </form>
+    `;
+    document.getElementById(`post-content-${post_id}`).value = content;
+    document.getElementById(`edit-submit-${post_id}`).onsubmit = () => {
+        edit_post(post_id);
+        return false;
+    }
+}
+
+function edit_post(post_id){
+    fetch(`/posts/edit/${post_id}`, {
+        method: 'POST',
+        body: JSON.stringify({
+            content: `${document.querySelector(`#post-content-${post_id}`).value}`
+        })
+    })
+    .then(response => response.json())
+    .then(post => {
+        document.querySelector(`#post-content-${post_id}`).parentElement.parentElement.innerHTML = article(post);
     });
     return false;
 }

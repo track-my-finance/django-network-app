@@ -1,4 +1,5 @@
 
+from network.views import edit_post
 from django.urls import path
 
 from . import views
@@ -14,6 +15,7 @@ urlpatterns = [
     path("profile/<str:username>/follow", views.follow, name="follow"),
     path("profile/<str:username>/unfollow", views.unfollow, name="unfollow"),
     path("posts", views.posts, name="posts"),
+    path("posts/edit/<int:post_id>", views.edit_post, name="edit_post"),
     path("posts/following", views.following_posts, name="following_posts"),
     path("posts/<int:post_id>/like", views.like, name="like"),
     path("posts/<int:post_id>/dislike", views.dislike, name="dislike"),

@@ -80,6 +80,21 @@ def posts(request):
         post.save()
         return JsonResponse(post.serialize(), safe=False, status=201)
 
+@csrf_exempt
+def edit_post(request, post_id):
+    if request.method == "POST":
+        #try:
+            post = Post.objects.get(id=post_id)
+            if request.user == post.user:
+                data = json.loads(request.body)
+                content = data.get("content", "")
+                post.content = content
+                post.save()
+                return JsonResponse(post.serialize(), safe=False, status=201)
+        #except:
+            #return JsonResponse({"error": "An unexpected error Ocurred"}, status=400)
+
+
 def user_posts(request, username):
     try:
         user = User.objects.get(username=username)
